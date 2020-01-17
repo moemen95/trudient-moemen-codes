@@ -20,7 +20,7 @@ np.random.seed(seed)
 
 # load our data
 print("loading our dataset please wait..")
-root_dir = "datasets/reducing-commercial-aviation-fatalities/" # the root directory of the dataset
+root_dir = "../datasets/reducing-commercial-aviation-fatalities/" # the root directory of the dataset
 df_train = pd.read_csv(root_dir + "train.csv") # load training data
 print("data loaded")
 # categorize and map with intergers
@@ -93,7 +93,7 @@ print(" Normalizing & Splitting")
 # split our dataset to train/dev split with 20% validaton splitting
 scaler = StandardScaler()
 x_train = scaler.fit_transform(x_train)
-x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=999, shuffle=True)
+x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=999, shuffle=False)
 print("x_train shape: {}, dtype: {}".format(x_train.shape, x_train.dtype))
 print("y_train shape: {}, dtype: {}".format(y_train.shape, y_train.dtype))
 print("x_val shape: {}, dtype: {}".format(x_val.shape, x_val.dtype))
@@ -120,8 +120,8 @@ model = Model(inputs=input_features, outputs=logits)
 
 # Let's define our hyperparameters
 learning_rate = 0.01
-batch_size = 256
-num_epochs = 5
+batch_size = 64
+num_epochs = 20
 
 optimizer = Adam(lr=learning_rate)
 
@@ -130,7 +130,7 @@ model.compile(optimizer = optimizer, loss = 'sparse_categorical_crossentropy', m
 
 print("Training")
 history = model.fit(x_train, y_train, batch_size=batch_size, epochs=num_epochs,
-                    validation_data=(x_val,y_val), verbose=2)
+                    validation_data=(x_val,y_val), verbose=2, shuffle=True)
 
 del x_train
 del y_train
@@ -141,6 +141,7 @@ print("loading test data")
 df_test = pd.read_csv(root_dir + "test.csv") # load testing data
 df_test = reduce_mem_usage(df_test)
 x_test = df_test.drop(["time", "experiment", "id"], axis=1).values.astype("float32")
+x_test = scaler.transform(x_test)
 
 del df_test
 gc.collect()
@@ -156,7 +157,7 @@ df_sub = pd.DataFrame({"A" : prediction[:,0],
                        "C" : prediction[:,2], 
                        "D" : prediction[:,3]})
 print(df_sub)
-df_sub.to_csv(root_dir + "submission_MLP_1.csv", index_label='id')
+df_sub.to_csv(root_dir + "submission_MLP_final.csv", index_label='id')
 
 prob = model.predict(x_val)
 pred = (prob > 0.5).astype(int).ravel()

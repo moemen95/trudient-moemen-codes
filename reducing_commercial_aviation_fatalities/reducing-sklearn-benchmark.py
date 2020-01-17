@@ -27,7 +27,7 @@ np.random.seed(seed)
 
 # load our data
 print("loading our dataset please wait..")
-root_dir = "datasets/reducing-commercial-aviation-fatalities/" # the root directory of the dataset
+root_dir = "../datasets/reducing-commercial-aviation-fatalities/" # the root directory of the dataset
 df_train = pd.read_csv(root_dir + "train.csv") # load training data
 print("data loaded")
 # categorize and map with intergers
@@ -95,39 +95,40 @@ x_train, y_train = df_train.drop(["time",
 print(" Normalizing & Splitting")
 # split our dataset to train/dev split with 20% validaton splitting
 scaler = StandardScaler()
-x_train = scaler.fit_transform(x_train)
-x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=999, shuffle=True)
+#x_train = scaler.fit_transform(x_train)
+x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=999, shuffle=False)
 print("x_train shape: {}, dtype: {}".format(x_train.shape, x_train.dtype))
 print("y_train shape: {}, dtype: {}".format(y_train.shape, y_train.dtype))
 print("x_val shape: {}, dtype: {}".format(x_val.shape, x_val.dtype))
 print("y_val shape: {}, dtype: {}".format(y_val.shape, y_val.dtype))
 
-names = ["Logistic Regression",
-         #"Neural Net",
-         "Linear SVM", "RBF SVM", "Gaussian Process",
-         "Decision Tree", "Random Forest",  "AdaBoost",
-         "Naive Bayes", "LDA", "QDA",  "Nearest Neighbors"]
+names = [
+"DecisionTreeClassifier",
+"RandomForestClassifier",
+"LinearDiscriminantAnalysis",
+"QuadraticDiscriminantAnalysis"]
+
+'''
+    LogisticRegression(multi_class = 'multinomial', solver='saga', penalty='l2', max_iter=100, n_jobs=4),
+    MLPClassifier(max_iter=100),
+    AdaBoostClassifier(),
+'''
 
 classifiers = [
-    LogisticRegression(multi_class = 'multinomial', solver='saga', penalty='l2', max_iter=500, n_jobs=4),
-    #MLPClassifier(max_iter=100),
-    SVC(kernel="linear"),
-    SVC(gamma=2, C=1),
-    GaussianProcessClassifier(1.0 * RBF(1.0)),
-    DecisionTreeClassifier(max_depth=5),
-    RandomForestClassifier(max_depth=5, n_estimators=100, max_features=500),
-    AdaBoostClassifier(),
-    GaussianNB(),
-    LinearDiscriminantAnalysis(),
-    QuadraticDiscriminantAnalysis(),
-    KNeighborsClassifier(100000)]
+    #DecisionTreeClassifier(),
+    RandomForestClassifier(n_estimators=250, oob_score=True,
+                               min_samples_leaf = 100, max_features=3,
+                               n_jobs=-1, class_weight='balanced'),
+    #LinearDiscriminantAnalysis(),
+    #QuadraticDiscriminantAnalysis()
+]
 
 df_metrics = pd.DataFrame(columns=['model', 'log_loss', 'accuracy'])
 
 # iterate over classifiers
-for name, clf in zip(names, classifiers):
+for clf in classifiers:
     print('_' * 80)
-    print("Training: {}".format(name))
+    print("Training: {}".format(clf))
     t0 = time()
     clf.fit(x_train, y_train)
     train_time = time() - t0
@@ -145,7 +146,7 @@ for name, clf in zip(names, classifiers):
     score = metrics.accuracy_score(y_val, pred)
     print("accuracy:   %0.3f" % score)
     
-    df_metrics.loc[name] = [clf, loss, score]
+    df_metrics.loc[str(clf)] = [clf, loss, score]
 
     if hasattr(clf, 'coef_'):
         print("dimensionality: %d" % clf.coef_.shape[1])

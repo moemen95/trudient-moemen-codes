@@ -84,7 +84,7 @@ from sklearn.model_selection import train_test_split
 
 print("Splitting")
 # split our dataset to train/dev split with 20% validaton splitting
-X_train, X_val, Y_train, Y_val = train_test_split(df_train, y_df_train, test_size=0.2, random_state=999, shuffle=True)
+X_train, X_val, Y_train, Y_val = train_test_split(df_train, y_df_train, test_size=0.2, random_state=999, shuffle=False)
 
 del df_train
 del y_df_train
