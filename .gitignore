@@ -131,3 +131,6 @@ dmypy.json
 # datasets
 datasets/
 
+# pycharm
+.idea/
+
